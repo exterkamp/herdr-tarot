@@ -2,7 +2,7 @@
 
 A little tarot oracle for [herdr](https://herdr.dev). Open it and one card lies face down;
 turn it over to see what it says. That card is yours for the day: open it again before midnight and the same card
-is waiting. About a third come up reversed, drawn upside down with the reversed reading.
+is waiting, unless you press `n` to draw again. About a third come up reversed, drawn upside down with the reversed reading.
 
 ```
 go build -o tarot .
@@ -25,6 +25,7 @@ card without keeping it.
 | key | |
 |---|---|
 | space, enter | turn the card over |
+| n | draw again: the card goes face down with a new one under it, which replaces today's |
 | j / k | scroll, when the pane is short |
 | q, esc | close |
 

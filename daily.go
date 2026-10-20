@@ -46,6 +46,15 @@ func pick(now time.Time, rng *rand.Rand) Draw {
 	return Draw{Date: day(now), Card: deck[rng.Intn(len(deck))].File, Reversed: rng.Intn(3) == 0}
 }
 
+// redraw picks a new card for the day, never the one it replaces.
+func redraw(old Draw, now time.Time, rng *rand.Rand) Draw {
+	for {
+		if d := pick(now, rng); d.Card != old.Card {
+			return d
+		}
+	}
+}
+
 // keep saves the day's card, so opening the oracle again shows the same one.
 func keep(dir string, d Draw) {
 	if data, err := json.Marshal(d); err == nil {

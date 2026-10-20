@@ -70,6 +70,7 @@ type model struct {
 	revealed bool
 	again    bool // already drawn earlier today
 	frame    int  // of the flip, 1…len(flip); 0 when still
+	unturn   bool // the flip is running backwards: the card going face down for a new draw
 	scroll   int
 
 	width, height int
@@ -106,6 +107,17 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.frame == 0 {
 			return m, nil
 		}
+		if m.unturn {
+			m.frame--
+			if m.frame == 0 {
+				// Face down again, with a different card under it, kept once it's turned like the first.
+				m.unturn, m.revealed, m.again = false, false, false
+				m.draw = redraw(m.draw, m.now, rand.New(rand.NewSource(time.Now().UnixNano())))
+				_ = m.load()
+				return m, nil
+			}
+			return m, nextFrame()
+		}
 		m.frame++
 		if m.frame > len(flip) {
 			m.frame, m.revealed = 0, true
@@ -123,6 +135,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					keep(m.dir, m.draw)
 				}
 				m.frame = 1
+				return m, nextFrame()
+			}
+		case "n":
+			if m.revealed && m.frame == 0 {
+				m.frame, m.unturn = len(flip)-1, true
 				return m, nextFrame()
 			}
 		case "j", "down":
@@ -227,7 +244,10 @@ func (m model) reading(w int) []string {
 		return lines
 	}
 	// Face down, the same space holds an invitation instead.
-	out := []string{bold + fg(starGold) + "Your card is face down." + reset, dim + "One a day. It's yours until midnight." + reset}
+	out := []string{bold + fg(starGold) + truncate("Your card is face down.", w) + reset}
+	for _, l := range wrap("Yours until midnight, or until you draw again.", w) {
+		out = append(out, dim+l+reset)
+	}
 	for len(out) < len(lines) {
 		out = append(out, "")
 	}
@@ -240,13 +260,13 @@ func (m model) hint() string {
 	case m.preview && !m.revealed:
 		s = "space turns it over · q closes · preview"
 	case m.preview:
-		s = "q closes · preview, nothing kept"
+		s = "n draws again · q closes · preview"
 	case !m.revealed:
 		s = "space turns it over · q closes"
 	case m.again:
-		s = "today's card · a new one tomorrow · q closes"
+		s = "today's card · n draws again · q closes"
 	default:
-		s = "yours for today · a new one tomorrow · q closes"
+		s = "yours for today · n draws again · q closes"
 	}
 	return dim + truncate("  "+s, m.width) + reset
 }

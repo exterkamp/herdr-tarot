@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 	"unicode/utf8"
+
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 func TestEveryCardHasArtAndMeanings(t *testing.T) {
@@ -74,5 +76,31 @@ func TestFramesFitThePane(t *testing.T) {
 				}
 			}
 		}
+	}
+}
+
+func TestDrawingAgainTurnsTheCardDownWithANewOne(t *testing.T) {
+	dir := t.TempDir()
+	m := model{dir: dir, now: time.Now(), draw: Draw{Date: day(time.Now()), Card: "19-sun"}, revealed: true, width: 53, height: 40}
+	_ = m.load()
+	var tm tea.Model = m
+	tm, cmd := tm.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("n")})
+	for cmd != nil {
+		tm, cmd = tm.Update(tick{})
+	}
+	m = tm.(model)
+	if m.revealed || m.draw.Card == "19-sun" || m.card.File != m.draw.Card {
+		t.Fatalf("after n: revealed %v, card %s", m.revealed, m.draw.Card)
+	}
+	// Nothing changes on disk until the new card is turned over.
+	if _, ok := today(dir, m.now); ok {
+		t.Error("kept before it was turned")
+	}
+	tm, cmd = tm.Update(tea.KeyMsg{Type: tea.KeySpace, Runes: []rune(" ")})
+	for cmd != nil {
+		tm, cmd = tm.Update(tick{})
+	}
+	if got, ok := today(dir, m.now); !ok || got.Card != m.draw.Card || !tm.(model).revealed {
+		t.Errorf("after turning: %+v %v", got, ok)
 	}
 }

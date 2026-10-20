@@ -4,6 +4,8 @@ A little tarot oracle for [herdr](https://herdr.dev). Open it and one card lies 
 turn it over to see what it says. That card is yours for the day: open it again before midnight and the same card
 is waiting, unless you press `n` to draw again. About a third come up reversed, drawn upside down with the reversed reading.
 
+![The card face down, turning over, and The Sun face up with its reading](docs/screenshot.png)
+
 ```
 herdr plugin install exterkamp/herdr-tarot
 ```

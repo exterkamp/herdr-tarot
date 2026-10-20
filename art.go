@@ -56,13 +56,23 @@ func (p picture) rotated() picture {
 	return out
 }
 
-// scaled resamples the picture to w×h by averaging the source area under each new pixel.
+// scaled resamples the picture to w×h: nearest pixel for small changes, otherwise by averaging the source area
+// under each new pixel.
 func (p picture) scaled(w, h int) picture {
 	if w == p.w && h == p.h {
 		return p
 	}
 	out := picture{w: w, h: h, px: make([]rgb, w*h)}
 	sx, sy := float64(p.w)/float64(w), float64(p.h)/float64(h)
+	if sx <= 4.0/3 && sy <= 4.0/3 {
+		// A small change: pick the nearest pixel, because averaging would smear the dithering into mud.
+		for y := 0; y < h; y++ {
+			for x := 0; x < w; x++ {
+				out.px[y*w+x] = p.at(min(p.w-1, int((float64(x)+.5)*sx)), min(p.h-1, int((float64(y)+.5)*sy)))
+			}
+		}
+		return out
+	}
 	for y := 0; y < h; y++ {
 		y0, y1 := float64(y)*sy, float64(y+1)*sy
 		for x := 0; x < w; x++ {

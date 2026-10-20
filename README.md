@@ -40,7 +40,7 @@ The art is Pamela Colman Smith's, from the 1909 deck she illustrated for A. E. W
 Rider & Son. It is in the public domain. The scans are from the 1909 "Roses & Lilies" printing on
 [Wikimedia Commons](https://commons.wikimedia.org/wiki/Category:Rider-Waite_tarot_deck_(Roses_%26_Lilies)).
 `tools/make_cards.py` crops each scan's title and numeral (the name is shown as text instead), reduces it to 40×60
-pixels and maps the whole deck onto one shared 32-colour palette:
+pixels and maps the whole deck onto one shared 64-colour palette with Floyd–Steinberg dithering:
 
 ```
 python3 tools/make_cards.py <folder of scans> cards

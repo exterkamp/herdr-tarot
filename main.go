@@ -17,7 +17,7 @@ import (
 func main() {
 	card := flag.String("card", "", "show this card (e.g. 19-sun) instead of today's; nothing is kept")
 	reversed := flag.Bool("reversed", false, "with -card, show it reversed")
-	print := flag.Bool("print", false, "print one frame to stdout instead of running (for checking the layout)")
+	printFrame := flag.Bool("print", false, "print one frame to stdout instead of running (for checking the layout)")
 	width := flag.Int("w", 53, "with -print, the width")
 	height := flag.Int("h", 40, "with -print, the height")
 	frame := flag.Int("frame", -1, "with -print, show this frame of the flip (0 is face down)")
@@ -44,7 +44,7 @@ func main() {
 		fmt.Fprintln(os.Stderr, "tarot:", err)
 		os.Exit(1)
 	}
-	if *print {
+	if *printFrame {
 		m.width, m.height = *width, *height
 		m.revealed = *frame < 0 || *frame > len(flip)
 		if *frame > 0 && *frame <= len(flip) {
@@ -132,6 +132,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if !m.revealed && m.frame == 0 {
 				if !m.preview {
 					// Kept the moment it's turned, so closing mid-flip doesn't give a second chance.
+					// Dated when it's turned, not when the pane opened: it may have been left open past midnight.
+					m.draw.Date = day(time.Now())
 					keep(m.dir, m.draw)
 				}
 				m.frame = 1

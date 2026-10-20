@@ -2,9 +2,12 @@
 import re, sys
 from PIL import Image, ImageDraw, ImageFont
 CW, CH = 9, 18
-font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf', 14)
+try:
+    font = ImageFont.truetype('DejaVuSansMono.ttf', 14)
+except OSError:
+    font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf', 14)
 lines = sys.stdin.read().split('\n')
-cols = int(sys.argv[2])
+cols = int(sys.argv[2])  # usage: ./tarot -print -w 53 | python3 tools/ansi2png.py out.png 53
 img = Image.new('RGB', (cols * CW, len(lines) * CH), (12, 12, 16))
 d = ImageDraw.Draw(img)
 DEF_FG, DEF_BG = (220, 220, 220), (12, 12, 16)

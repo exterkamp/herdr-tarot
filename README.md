@@ -5,9 +5,10 @@ turn it over to see what it says. That card is yours for the day: open it again 
 is waiting, unless you press `n` to draw again. About a third come up reversed, drawn upside down with the reversed reading.
 
 ```
-go build -o tarot .
-herdr plugin link .
+herdr plugin install exterkamp/herdr-tarot
 ```
+
+herdr builds it with Go (1.19 or newer). Or, from a clone, `go build -o tarot . && herdr plugin link .`.
 
 Then bind it in `~/.config/herdr/config.toml`:
 

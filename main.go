@@ -11,6 +11,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/aymanbagabas/go-osc52/v2"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -72,11 +73,15 @@ type model struct {
 	frame    int  // of the flip, 1…len(flip); 0 when still
 	unturn   bool // the flip is running backwards: the card going face down for a new draw
 	scroll   int
+	note     string // shown in place of the hint for a moment, after copying
 
 	width, height int
 }
 
-type tick struct{}
+type (
+	tick     struct{}
+	noteGone struct{}
+)
 
 // The flip: the back narrows to an edge, then the face widens out of it.
 var flip = []struct {
@@ -101,6 +106,8 @@ func (m model) Init() tea.Cmd { return nil }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case noteGone:
+		m.note = ""
 	case tea.WindowSizeMsg:
 		m.width, m.height = msg.Width, msg.Height
 	case tick:
@@ -138,6 +145,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				m.frame = 1
 				return m, nextFrame()
+			}
+		case "c", "y":
+			if m.revealed && m.frame == 0 {
+				m.note = "copied the card and its reading"
+				return m, tea.Batch(copyText(m.share()), tea.Tick(2*time.Second, func(time.Time) tea.Msg { return noteGone{} }))
 			}
 		case "n":
 			if m.revealed && m.frame == 0 {
@@ -261,16 +273,37 @@ func (m model) hint() string {
 	switch {
 	case m.preview && !m.revealed:
 		s = "space turns it over · q closes · preview"
+	case m.note != "":
+		s = m.note
 	case m.preview:
-		s = "n draws again · q closes · preview"
+		s = "c copy · n redraw · q close · preview"
 	case !m.revealed:
 		s = "space turns it over · q closes"
 	case m.again:
-		s = "today's card · n draws again · q closes"
+		s = "today's card · c copy · n redraw · q close"
 	default:
-		s = "yours for today · n draws again · q closes"
+		s = "yours for today · c copy · n redraw · q close"
 	}
 	return dim + truncate("  "+s, m.width) + reset
+}
+
+// share is the card and its reading as plain text, for pasting anywhere.
+func (m model) share() string {
+	meaning, way := m.card.Upright, "upright"
+	if m.draw.Reversed {
+		meaning, way = m.card.Reversed, "reversed"
+	}
+	return fmt.Sprintf("☾ My tarot card for %s\n%s (%s)\n%s\n%s\n",
+		m.now.Format("Monday 2 January"), m.card.Name, way, meaning.Keywords, meaning.Text)
+}
+
+// copyText puts text on the clipboard with OSC 52, which herdr passes on to the terminal it's attached from, even
+// over ssh or mosh.
+func copyText(text string) tea.Cmd {
+	return func() tea.Msg {
+		_, _ = osc52.New(text).WriteTo(os.Stdout)
+		return nil
+	}
 }
 
 func truncate(s string, w int) string {

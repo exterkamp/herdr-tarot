@@ -104,3 +104,14 @@ func TestDrawingAgainTurnsTheCardDownWithANewOne(t *testing.T) {
 		t.Errorf("after turning: %+v %v", got, ok)
 	}
 }
+
+func TestTheCopyIsThePlainReading(t *testing.T) {
+	now := time.Date(2026, 10, 19, 9, 0, 0, 0, time.Local)
+	m := model{now: now, draw: Draw{Card: "19-sun", Reversed: true}}
+	_ = m.load()
+	want := "☾ My tarot card for Monday 19 October\nXIX · The Sun (reversed)\nclouded joy · delays\n" +
+		"Good things, slightly dimmed or delayed. Still sunny behind the cloud.\n"
+	if got := m.share(); got != want {
+		t.Errorf("share =\n%s\nwant\n%s", got, want)
+	}
+}

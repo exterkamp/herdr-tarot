@@ -28,6 +28,7 @@ card without keeping it.
 | key | |
 |---|---|
 | space, enter | turn the card over |
+| c | copy the card and its reading to the clipboard (OSC 52, so it works over ssh and mosh too) |
 | n | draw again: the card goes face down with a new one under it, which replaces today's |
 | j / k | scroll, when the pane is short |
 | q, esc | close |

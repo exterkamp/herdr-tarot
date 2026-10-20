@@ -1,0 +1,26 @@
+# tarot as a herdr plugin. Link this directory with `herdr plugin link .` after `go build -o tarot .`, or install it
+# from GitHub, which builds it.
+id = "exterkamp.tarot"
+name = "tarot"
+version = "0.1.0"
+min_herdr_version = "0.9.0"
+description = "A tarot oracle: turn over one card a day and read what it says"
+platforms = ["linux", "macos"]
+
+[[build]]
+command = ["go", "build", "-o", "tarot", "."]
+
+[[panes]]
+id = "oracle"
+title = "tarot"
+placement = "popup"
+width = "100%"
+height = "100%"
+command = ["./tarot"]
+
+# For a keybinding ([[keys.command]] type = "plugin_action", command = "exterkamp.tarot.open") and for apps.
+[[actions]]
+id = "open"
+title = "Draw a tarot card"
+contexts = ["workspace"]
+command = ["sh", "-c", "exec \"$HERDR_BIN_PATH\" plugin pane open --plugin exterkamp.tarot --entrypoint oracle --focus"]
